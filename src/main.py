@@ -1,6 +1,6 @@
 import time
 
-from .HardwarePWM import HardwarePWM
+from rpi_servo_pwm import HardwarePWM
 
 pwm = HardwarePWM(channel=0, chip=0, frequency_hz=50.0)
 

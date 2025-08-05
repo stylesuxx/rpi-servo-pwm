@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 from unittest.mock import mock_open, call
 
-from src.HardwarePWM import HardwarePWM  # replace with actual module name
+from src.rpi_servo_pwm.HardwarePWM import HardwarePWM  # replace with actual module name
 
 
 @pytest.fixture
