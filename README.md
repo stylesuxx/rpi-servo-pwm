@@ -89,19 +89,10 @@ This library provides low-level access to Raspberry Pi's hardware PWM interface 
 
 ## Installation
 
-Clone the repository:
+Install via pip:
 
 ```bash
-git clone https://github.com/stylesuxx/rpi-servo-pwm.git
-cd rpi-servo-pwm
-```
-
-Create a virtual environment and install dependencies:
-
-```bash
-python -m venv ./venv
-source ./venv/bin/activate
-pip install -r requirements.txt
+pip install rpi-servo-pwm
 ```
 
 ## Usage
