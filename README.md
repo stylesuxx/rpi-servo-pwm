@@ -1,10 +1,15 @@
 # Raspberry Pi Zero 2 W Servo PWM
 
-A lightweight Python library for controlling servos on the Raspberry Pi Zero 2 W using hardware PWM via the Linux kernel.
+A lightweight Python library for controlling RC servos on the Raspberry Pi Zero 2 W using hardware PWM via the Linux kernel.
+
+This library is specifically designed for **servo PWM control**. The PWM frequency is fixed to 50 Hz by default, and you specify the pulse length in microseconds.
+
+Typical RC servos expect a pulse width between **1000 µs and 2000 µs**, where **1500 µs** is the center position. Some servo models support a wider range, e.g., **900–2100 µs**, but you must verify this in your servo's datasheet or test cautiously. Increase or decrease values gradually; if the servo starts making crackling or buzzing noises, reduce the range.
+Extended pulse width ranges are usually symmetrical – for example, if you can safely reduce the pulse width by 100 µs, you can usually increase it by a similar amount.
 
 ## Setup
 
-This library uses the kernel PWM driver provided by Raspberry Pi OS. To enable it, you must configure the Device Tree Overlay and reboot.
+This library uses the kernel PWM driver provided by Raspberry Pi OS. To enable it, configure the Device Tree Overlay and reboot.
 
 ### Enable PWM in `/boot/config.txt`
 
@@ -36,7 +41,7 @@ cat /sys/class/pwm/pwmchip0/npwm
 # Expected output: 2
 ```
 
-### Default GPIO Mapping
+### Default GPIO mapping
 
 With the default overlay configuration, channels are mapped as follows:
 
@@ -45,23 +50,23 @@ With the default overlay configuration, channels are mapped as follows:
 | 0       | GPIO 18  |
 | 1       | GPIO 19  |
 
-### Optional: Remapping PWM pins
+### Optional: remapping PWM pins
 
-You can remap to other supported PWM-capable pins using overlay parameters.
+You can remap PWM channels to other supported GPIO pins using overlay parameters.
 For example, to map channel 1 to GPIO 13:
 
 ```ini
 dtoverlay=pwm-2chan,pin=18,func=2,pin2=13,func2=4
 ```
 
-This results in:
+Resulting mapping:
 
 | Channel | GPIO Pin |
 |---------|----------|
 | 0       | GPIO 18  |
 | 1       | GPIO 13  |
 
-Verify the mapping with:
+Verify the mapping:
 
 ```bash
 raspi-gpio get 18
@@ -72,7 +77,7 @@ raspi-gpio get 13
 ```
 
 Note: Depending on firmware version, multiple `dtoverlay=pwm` lines may not both load.
-If you encounter issues, combine pins into a single `pwm-2chan` line or consider a [custom overlay](https://github.com/raspberrypi/linux/blob/rpi-5.10.y/arch/arm/boot/dts/overlays/pwm-overlay.dts).
+If you encounter issues, combine pins into a single `pwm-2chan` line or consider creating a [custom overlay](https://github.com/raspberrypi/linux/blob/rpi-5.10.y/arch/arm/boot/dts/overlays/pwm-overlay.dts).
 
 ## Goals
 
@@ -99,23 +104,35 @@ source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Usage Example
+## Usage
+
+Example using manual resource management:
 
 ```python
-from hardware_pwm import HardwarePWM
+from rpi-servo-pwm import HardwarePWM
 
 # Initialize PWM on channel 0 (GPIO 18), using 50 Hz
 pwm = HardwarePWM(channel=0, frequency_hz=50)
 
-# Setup with initial duty cycle (in microseconds)
-pwm.setup(duty_us=1500)
+# Start PWM with initial pulse width
+pwm.setup(1500)
 
-# Move servo to new position
-pwm.set_duty_us(2000)
+# Move servo to a new position
+pwm.set_pulse_width(2000)
 
-# Disable when done
+# Disable and close
 pwm.disable()
 pwm.close()
+```
+
+Example using a context manager:
+
+```python
+from rpi-servo-pwm import HardwarePWM
+
+with HardwarePWM(channel=0) as pwm:
+    pwm.setup(1500)
+    pwm.set_pulse_width(2000)
 ```
 
 ## Testing
@@ -128,19 +145,6 @@ python -m pytest tests
 
 Tests are fully mocked and safe to run without hardware access.
 
-## Distribution
-
-To build and upload to PyPI:
-
-1. Update the version in both `hardware_pwm/__init__.py` and `pyproject.toml`
-2. Build and publish:
-
-```bash
-python -m build
-python -m twine upload --repository testpypi dist/*
-python -m twine upload dist/*
-```
-
 ## Contributing
 
 Pull requests and issue reports are welcome.
@@ -151,4 +155,17 @@ Before contributing:
 python -m venv ./venv
 source ./venv/bin/activate
 pip install -r requirements.txt
+```
+
+## Distribution
+
+To build and upload to PyPI:
+
+1. Update the version in both `src/__init__.py` and `pyproject.toml`
+2. Build and publish:
+
+```bash
+python -m build
+python -m twine upload --repository testpypi dist/*
+python -m twine upload dist/*
 ```

@@ -53,23 +53,23 @@ def test_setup_calls_write_once_and_set_duty(mock_sysfs):
     pwm = HardwarePWM(channel=0)
 
     pwm._write_once = mock.Mock()
-    pwm.set_duty_us = mock.Mock()
+    pwm.set_pulse_width = mock.Mock()
 
-    pwm.setup(duty_us=1500)
+    pwm.setup(pulse_width=1500)
 
     pwm._write_once.assert_has_calls([
         call("period", pwm.period_ns),
         call("enable", 1)
     ])
-    pwm.set_duty_us.assert_called_once_with(1500)
+    pwm.set_pulse_width.assert_called_once_with(1500)
     pwm.close()
 
 
-def test_set_duty_us_writes_correct_value(mock_sysfs):
+def test_set_pulse_width_writes_correct_value(mock_sysfs):
     pwm = HardwarePWM(channel=0)
     fd = pwm.duty_fd = mock.Mock()
 
-    pwm.set_duty_us(1234)
+    pwm.set_pulse_width(1234)
 
     fd.seek.assert_called_once_with(0)
     fd.write.assert_called_once_with(str(1234 * 1000))

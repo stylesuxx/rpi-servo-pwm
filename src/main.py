@@ -8,17 +8,19 @@ MIN_PULSE = 1000  # in microseconds
 MID_PULSE = 1500
 MAX_PULSE = 2000
 
-try:
-    pwm.setup(duty_us=MID_PULSE)
 
-    while True:
-        for pulse in [MIN_PULSE, MID_PULSE, MAX_PULSE, MID_PULSE]:
-            pwm.set_duty_us(pulse)
-            time.sleep(0.7)
+with HardwarePWM(channel=0) as pwm:
+    pwm.setup(1500)
+    pwm.set_pulse_width(2000)
 
-except KeyboardInterrupt:
-    print("Interrupted, disabling PWM...")
+    try:
+        while True:
+            for pulse in [MIN_PULSE, MID_PULSE, MAX_PULSE, MID_PULSE]:
+                pwm.set_pulse_width(pulse)
+                time.sleep(0.7)
 
-finally:
-    pwm.disable()
-    pwm.close()
+    except KeyboardInterrupt:
+        print("Interrupted, disabling PWM...")
+
+    finally:
+        pwm.disable()

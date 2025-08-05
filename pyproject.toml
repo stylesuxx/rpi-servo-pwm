@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rpi-servo-pwm"
+version = "0.1.1"
+authors = [
+  { name = "Chris L.", email = "stylesuxx@gmail.com" },
+]
+description = "A lightweight library for controlling RC servos on the Raspberry Pi Zero 2 W using hardware PWM via the Linux kernel."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+license = { file = "LICENSE"}
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/stylesuxx/rpi-servo-pwm"
+Issues = "https://github.com/stylesuxx/rpi-servo-pwm/issues"

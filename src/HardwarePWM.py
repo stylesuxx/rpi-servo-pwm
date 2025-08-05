@@ -20,7 +20,7 @@ class HardwarePWM:
         if not os.path.isdir(self.channel_path):
             self._export_channel()
 
-        # Open only duty_cycle file for efficient repeated writes
+        # Open duty_cycle file for efficient repeated writes
         self.duty_fd = open(os.path.join(self.channel_path, "duty_cycle"), "w")
 
     def _export_channel(self):
@@ -33,13 +33,14 @@ class HardwarePWM:
         with open(path, "w") as f:
             f.write(str(value))
 
-    def setup(self, duty_us: int):
+    def setup(self, pulse_width: int):
         self._write_once("period", self.period_ns)
-        self.set_duty_us(duty_us)
+        self.set_pulse_width(pulse_width)
         self._write_once("enable", 1)
 
-    def set_duty_us(self, duty_us: int):
-        duty_ns = duty_us * 1000
+    def set_pulse_width(self, pulse_width: int):
+        """Set the PWM pulse width in microseconds (e.g., 1000–2000)."""
+        duty_ns = pulse_width * 1000
         self.duty_fd.seek(0)
         self.duty_fd.write(str(duty_ns))
         self.duty_fd.flush()
@@ -50,3 +51,9 @@ class HardwarePWM:
     def close(self):
         self.duty_fd.close()
         # Intentionally not unexporting — leave it available for other users
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
