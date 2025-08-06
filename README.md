@@ -11,6 +11,8 @@ Extended pulse width ranges are usually symmetrical – for example, if you can 
 
 This library uses the kernel PWM driver provided by Raspberry Pi OS. To enable it, configure the Device Tree Overlay and reboot.
 
+> Make sure you are not running any other PWM-related software like pigpio(d) for example.
+
 ### Enable PWM in `/boot/config.txt`
 
 Add the following line:

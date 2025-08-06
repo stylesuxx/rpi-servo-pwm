@@ -1,4 +1,5 @@
 import os
+import time
 
 
 class HardwarePWM:
@@ -20,40 +21,50 @@ class HardwarePWM:
         if not os.path.isdir(self.channel_path):
             self._export_channel()
 
-        # Open duty_cycle file for efficient repeated writes
+        self._wait_for_permissions("duty_cycle", timeout=1.0)
         self.duty_fd = open(os.path.join(self.channel_path, "duty_cycle"), "w")
 
-    def _export_channel(self):
+    def _export_channel(self) -> None:
         export_path = os.path.join(self.base_path, "export")
         with open(export_path, "w") as f:
             f.write(str(self.channel))
 
-    def _write_once(self, name: str, value):
+    def _wait_for_permissions(self, filename: str, timeout: float = 1.0) -> None:
+        path = os.path.join(self.channel_path, filename)
+        start = time.time()
+        while time.time() - start < timeout:
+            if os.access(path, os.W_OK):
+                return
+            time.sleep(0.05)
+
+        raise PermissionError(f"Timeout waiting for write access to {path}")
+
+    def _write_once(self, name: str, value) -> None:
         path = os.path.join(self.channel_path, name)
         with open(path, "w") as f:
             f.write(str(value))
 
-    def setup(self, pulse_width: int):
+    def setup(self, pulse_width_ms: int) -> None:
         self._write_once("period", self.period_ns)
-        self.set_pulse_width(pulse_width)
+        self.set_pulse_width(pulse_width_ms)
         self._write_once("enable", 1)
 
-    def set_pulse_width(self, pulse_width: int):
+    def set_pulse_width(self, pulse_width_ms: int) -> None:
         """Set the PWM pulse width in microseconds (e.g., 1000–2000)."""
-        duty_ns = pulse_width * 1000
+        duty_ns = pulse_width_ms * 1000
         self.duty_fd.seek(0)
         self.duty_fd.write(str(duty_ns))
         self.duty_fd.flush()
 
-    def disable(self):
+    def disable(self) -> None:
         self._write_once("enable", 0)
 
-    def close(self):
+    def close(self) -> None:
         self.duty_fd.close()
         # Intentionally not unexporting — leave it available for other users
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
