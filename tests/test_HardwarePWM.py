@@ -1,21 +1,27 @@
+import os
 import pytest
 from unittest import mock
 from unittest.mock import mock_open, call
 
-from src.rpi_servo_pwm.HardwarePWM import HardwarePWM  # replace with actual module name
+from src.rpi_servo_pwm.HardwarePWM import HardwarePWM  # adjust path if needed
 
 
 @pytest.fixture
 def mock_sysfs(monkeypatch):
-    # Simulate directory structure
+    """Simulate sysfs directory and files for PWM."""
     base_path = "/sys/class/pwm/pwmchip0"
     channel_path = f"{base_path}/pwm0"
 
+    # Simulate base & channel directory existence
     isdir_mock = mock.Mock(side_effect=lambda path: path in [base_path, channel_path])
     monkeypatch.setattr("os.path.isdir", isdir_mock)
 
+    # Mock file operations
     open_mock = mock_open()
     monkeypatch.setattr("builtins.open", open_mock)
+
+    # Skip permission waiting logic
+    monkeypatch.setattr(HardwarePWM, "_wait_for_permissions", lambda *a, **k: None)
 
     return {
         "base_path": base_path,
@@ -26,26 +32,26 @@ def mock_sysfs(monkeypatch):
 
 
 def test_init_exports_channel_if_missing(monkeypatch):
+    """Should write to export if channel dir is missing."""
     base_path = "/sys/class/pwm/pwmchip0"
     channel_path = f"{base_path}/pwm0"
     open_mock = mock_open()
     monkeypatch.setattr("builtins.open", open_mock)
 
-    # Simulate base path exists, but channel path doesn't initially
-    paths = set([base_path])
-
+    # Simulate base exists, channel missing first
+    calls = {"checked": False}
     def isdir_side_effect(path):
-        if path == channel_path and "check_channel" not in paths:
-            paths.add("check_channel")
+        if path == channel_path and not calls["checked"]:
+            calls["checked"] = True
             return False
-        return path in paths
+        return path in {base_path, channel_path}
 
     monkeypatch.setattr("os.path.isdir", mock.Mock(side_effect=isdir_side_effect))
+    monkeypatch.setattr(HardwarePWM, "_wait_for_permissions", lambda *a, **k: None)
 
     pwm = HardwarePWM(channel=0, chip=0, frequency_hz=50.0)
 
-    export_path = f"{base_path}/export"
-    open_mock.assert_any_call(export_path, "w")
+    open_mock.assert_any_call(f"{base_path}/export", "w")
     pwm.close()
 
 
@@ -55,7 +61,7 @@ def test_setup_calls_write_once_and_set_duty(mock_sysfs):
     pwm._write_once = mock.Mock()
     pwm.set_pulse_width = mock.Mock()
 
-    pwm.setup(pulse_width=1500)
+    pwm.setup(pulse_width_ms=1500)
 
     pwm._write_once.assert_has_calls([
         call("period", pwm.period_ns),
