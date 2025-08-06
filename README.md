@@ -7,11 +7,30 @@ This library is specifically designed for **servo PWM control**. The PWM frequen
 Typical RC servos expect a pulse width between **1000 µs and 2000 µs**, where **1500 µs** is the center position. Some servo models support a wider range, e.g., **900–2100 µs**, but you must verify this in your servo's datasheet or test cautiously. Increase or decrease values gradually; if the servo starts making crackling or buzzing noises, reduce the range.
 Extended pulse width ranges are usually symmetrical – for example, if you can safely reduce the pulse width by 100 µs, you can usually increase it by a similar amount.
 
+## Why this library?
+
+I wanted a deterministic library for one specific use case: **Servo PWM**.
+Existing solutions were often too bloated, included unused features or relied on software-based PWM, which is not timing-accurate.
+
+This library ensures:
+
+* **Hardware-only PWM** (no bit-banging fallback)
+* **Predictable timing**, as PWM generation is handled by the Raspberry Pi's PWM hardware module
+* A **minimal, low-overhead interface** tailored for servos (frequency fixed at 50Hz, only pulse width adjustable)
+
+## Supported platforms
+
+All Raspberry Pi platforms with kernel hardware PWM support should work.
+
+It has been tested on the following platforms:
+
+* Raspberry Pi Zero 2 W (with Raspberry Pi OS Bullseye, Bookworm)
+
 ## Setup
 
 This library uses the kernel PWM driver provided by Raspberry Pi OS. To enable it, configure the Device Tree Overlay and reboot.
 
-> Make sure you are not running any other PWM-related software like pigpio(d) for example.
+> Make sure you are not running any other PWM-related software like `pigpiod` for example.
 
 ### Enable PWM in `/boot/config.txt`
 
@@ -41,6 +60,14 @@ Verify that there are two available channels:
 ```bash
 cat /sys/class/pwm/pwmchip0/npwm
 # Expected output: 2
+```
+
+### Verify Group membership
+
+Make sure that the invoking user is part of the `gpio` group, if not add them:
+
+```bash
+sudo usermod -aG gpio $USER
 ```
 
 ### Default GPIO mapping
@@ -78,17 +105,6 @@ raspi-gpio get 13
 # GPIO 13: level=0 fsel=4 alt=0 func=PWM1
 ```
 
-Note: Depending on firmware version, multiple `dtoverlay=pwm` lines may not both load.
-If you encounter issues, combine pins into a single `pwm-2chan` line or consider creating a [custom overlay](https://github.com/raspberrypi/linux/blob/rpi-5.10.y/arch/arm/boot/dts/overlays/pwm-overlay.dts).
-
-## Goals
-
-This library provides low-level access to Raspberry Pi's hardware PWM interface via sysfs, avoiding high-level wrappers. This enables:
-
-- Deterministic servo control
-- Low-latency, real-time compatible operation
-- Direct access to kernel PWM without background daemons
-
 ## Installation
 
 Install via pip:
@@ -102,7 +118,7 @@ pip install rpi-servo-pwm
 Example using manual resource management:
 
 ```python
-from rpi-servo-pwm import HardwarePWM
+from rpi_servo_pwm import HardwarePWM
 
 # Initialize PWM on channel 0 (GPIO 18), using 50 Hz
 pwm = HardwarePWM(channel=0, frequency_hz=50)
@@ -121,12 +137,15 @@ pwm.close()
 Example using a context manager:
 
 ```python
-from rpi-servo-pwm import HardwarePWM
+from rpi_servo_pwm import HardwarePWM
 
 with HardwarePWM(channel=0) as pwm:
     pwm.setup(1500)
     pwm.set_pulse_width(2000)
+    pwm.disable()
 ```
+
+Once you call `setup`, the PWM signal starts outputting on the pin. Calling `disable` stops the PWM output.
 
 ## Testing
 
@@ -158,6 +177,7 @@ To build and upload to PyPI:
 2. Build and publish:
 
 ```bash
+rm -rf dist/*
 python -m build
 python -m twine upload --repository testpypi dist/*
 python -m twine upload dist/*
