@@ -3,12 +3,7 @@ import time
 
 
 class HardwarePWM:
-    def __init__(
-        self,
-        channel: int,
-        chip: int = 0,
-        frequency_hz: float = 50.0
-    ):
+    def __init__(self, channel: int, chip: int = 0, frequency_hz: float = 50.0):
         if channel < 0:
             raise ValueError("Channel must be non-negative")
         if chip < 0:
@@ -63,7 +58,9 @@ class HardwarePWM:
 
         duty_ns = pulse_width_us * 1000
         if duty_ns > self.period_ns:
-            raise ValueError(f"Pulse width ({pulse_width_us}μs) cannot exceed period ({self.period_ns//1000}μs)")
+            raise ValueError(
+                f"Pulse width ({pulse_width_us}μs) cannot exceed period ({self.period_ns//1000}μs)"
+            )
 
         self.duty_fd.seek(0)
         self.duty_fd.write(str(duty_ns))
@@ -73,7 +70,7 @@ class HardwarePWM:
         self._write_once("enable", 0)
 
     def close(self) -> None:
-        if hasattr(self, 'duty_fd') and not self.duty_fd.closed:
+        if hasattr(self, "duty_fd") and not self.duty_fd.closed:
             self.duty_fd.close()
         # Intentionally not unexporting — leave it available for other users
 

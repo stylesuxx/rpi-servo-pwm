@@ -26,6 +26,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Check code formatting with Black
+        run: black --check --diff .
+
       - name: Run tests with coverage
         run: python -m pytest tests --cov=src/rpi_servo_pwm --cov-report=xml
 

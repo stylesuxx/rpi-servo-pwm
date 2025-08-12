@@ -1,5 +1,5 @@
 [![Tests](https://github.com/stylesuxx/rpi-servo-pwm/workflows/Tests/badge.svg)](https://github.com/stylesuxx/rpi-servo-pwm/actions)
- [![Coverage](https://codecov.io/gh/stylesuxx/rpi-servo-pwm/branch/main/graph/badge.svg)](https://codecov.io/gh/stylesuxx/rpi-servo-pwm) [![Python versions](https://img.shields.io/pypi/pyversions/rpi-servo-pwm.svg)](https://pypi.org/project/rpi-servo-pwm/) [![PyPI version](https://badge.fury.io/py/rpi-servo-pwm.svg)](https://badge.fury.io/py/rpi-servo-pwm) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+ [![Coverage](https://codecov.io/gh/stylesuxx/rpi-servo-pwm/branch/main/graph/badge.svg)](https://codecov.io/gh/stylesuxx/rpi-servo-pwm) [![Python versions](https://img.shields.io/pypi/pyversions/rpi-servo-pwm.svg)](https://pypi.org/project/rpi-servo-pwm/) [![PyPI version](https://badge.fury.io/py/rpi-servo-pwm.svg)](https://badge.fury.io/py/rpi-servo-pwm) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![PyPI downloads](https://img.shields.io/pypi/dm/rpi-servo-pwm.svg)](https://pypi.org/project/rpi-servo-pwm/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 # Raspberry Pi Zero 2 W Servo PWM
 
@@ -170,6 +170,16 @@ Before contributing:
 python -m venv ./venv
 source ./venv/bin/activate
 pip install -r requirements.txt
+```
+
+Before submitting a PR, ensure code is formatted with Black:
+
+```bash
+# Check formatting
+black --check src/ tests/ main.py
+
+# Apply formatting
+black src/ tests/ main.py
 ```
 
 ## Distribution

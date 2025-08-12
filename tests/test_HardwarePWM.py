@@ -7,11 +7,13 @@ from src.rpi_servo_pwm.HardwarePWM import HardwarePWM
 @pytest.fixture
 def mock_sysfs(monkeypatch):
     """Simulate sysfs directory and files for PWM."""
+
     # Mock isdir to return True for any PWM path pattern
     def isdir_side_effect(path):
         # Accept any pwmchipX and pwmchipX/pwmY patterns
         import re
-        return bool(re.match(r'/sys/class/pwm/pwmchip\d+(/pwm\d+)?$', path))
+
+        return bool(re.match(r"/sys/class/pwm/pwmchip\d+(/pwm\d+)?$", path))
 
     isdir_mock = mock.Mock(side_effect=isdir_side_effect)
     monkeypatch.setattr("os.path.isdir", isdir_mock)
@@ -90,6 +92,7 @@ class TestInitialization:
 
         # Simulate base exists, channel missing initially
         calls = {"checked": False}
+
         def isdir_side_effect(path):
             if path == channel_path and not calls["checked"]:
                 calls["checked"] = True
@@ -109,13 +112,18 @@ class TestInitialization:
 class TestFrequencyCalculation:
     """Test frequency to period conversion."""
 
-    @pytest.mark.parametrize("frequency,expected_period", [
-        (50.0, 20_000_000),    # 50Hz = 20ms
-        (100.0, 10_000_000),   # 100Hz = 10ms
-        (1000.0, 1_000_000),   # 1kHz = 1ms
-        (1.0, 1_000_000_000),  # 1Hz = 1s
-    ])
-    def test_frequency_to_period_conversion(self, mock_sysfs, frequency, expected_period):
+    @pytest.mark.parametrize(
+        "frequency,expected_period",
+        [
+            (50.0, 20_000_000),  # 50Hz = 20ms
+            (100.0, 10_000_000),  # 100Hz = 10ms
+            (1000.0, 1_000_000),  # 1kHz = 1ms
+            (1.0, 1_000_000_000),  # 1Hz = 1s
+        ],
+    )
+    def test_frequency_to_period_conversion(
+        self, mock_sysfs, frequency, expected_period
+    ):
         """Test various frequency to period conversions."""
         pwm = HardwarePWM(channel=0, frequency_hz=frequency)
         assert pwm.period_ns == expected_period
@@ -134,10 +142,7 @@ class TestSetup:
         pwm.setup(pulse_width_us=1500)
 
         # Verify call order and arguments
-        expected_calls = [
-            call("period", pwm.period_ns),
-            call("enable", 1)
-        ]
+        expected_calls = [call("period", pwm.period_ns), call("enable", 1)]
         pwm._write_once.assert_has_calls(expected_calls)
         pwm.set_pulse_width.assert_called_once_with(1500)
         pwm.close()
@@ -211,7 +216,9 @@ class TestControlMethods:
 
         pwm._write_once("enable", 1)
 
-        mock_sysfs["open_mock"].assert_any_call("/sys/class/pwm/pwmchip0/pwm0/enable", "w")
+        mock_sysfs["open_mock"].assert_any_call(
+            "/sys/class/pwm/pwmchip0/pwm0/enable", "w"
+        )
         mock_sysfs["open_mock"]().write.assert_any_call("1")
         pwm.close()
 
@@ -252,7 +259,7 @@ class TestResourceManagement:
 
     def test_context_manager_usage(self, mock_sysfs):
         """Test context manager functionality."""
-        with mock.patch.object(HardwarePWM, 'close') as mock_close:
+        with mock.patch.object(HardwarePWM, "close") as mock_close:
             with HardwarePWM(channel=0) as pwm:
                 assert isinstance(pwm, HardwarePWM)
 
@@ -260,7 +267,7 @@ class TestResourceManagement:
 
     def test_context_manager_with_exception(self, mock_sysfs):
         """Test context manager calls close even with exceptions."""
-        with mock.patch.object(HardwarePWM, 'close') as mock_close:
+        with mock.patch.object(HardwarePWM, "close") as mock_close:
             try:
                 with HardwarePWM(channel=0) as pwm:
                     raise ValueError("Test exception")
