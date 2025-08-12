@@ -1,4 +1,4 @@
-[![Coverage](https://codecov.io/gh/stylesuxx/rpi_servo_pwm/branch/main/graph/badge.svg)](https://codecov.io/gh/stylesuxx/rpi_servo_pwm)
+[![Coverage](https://codecov.io/gh/stylesuxx/rpi-servo-pwm/branch/main/graph/badge.svg)](https://codecov.io/gh/stylesuxx/rpi-servo-pwm)
 
 # Raspberry Pi Zero 2 W Servo PWM
 
