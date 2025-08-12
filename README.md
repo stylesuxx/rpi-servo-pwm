@@ -1,3 +1,5 @@
+[![Coverage](https://codecov.io/gh/stylesuxx/rpi_servo_pwm/branch/main/graph/badge.svg)](https://codecov.io/gh/stylesuxx/rpi_servo_pwm)
+
 # Raspberry Pi Zero 2 W Servo PWM
 
 A lightweight Python library for controlling RC servos on the Raspberry Pi Zero 2 W using hardware PWM via the Linux kernel.
